@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html ng-app="myApp" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.3/css/bootstrap-select.min.css"/>
+    <link href="{{ STATIC_URL }}assets/plugins/uniform/css/uniform.default.css" rel="stylesheet" type="text/css"/>
+    <link href="{{ STATIC_URL }}assets/css/style-metronic.css" rel="stylesheet" type="text/css"/>
+    <link href="{{ STATIC_URL }}assets/css/style.css" rel="stylesheet" type="text/css"/>
+    <link href="{{ STATIC_URL }}assets/css/style-responsive.css" rel="stylesheet" type="text/css"/>
+    <link href="{{ STATIC_URL }}assets/css/plugins.css" rel="stylesheet" type="text/css"/>
+    <link href="{{ STATIC_URL }}css/vex.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/vex-theme-kobo.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}assets/css/themes/default.css" rel="stylesheet" type="text/css" id="style_color"/>
+    <link href="{{ STATIC_URL }}assets/css/custom.css" rel="stylesheet" type="text/css"/>
+    <style>
+        .fa-plus-circle, .fa-minus-circle {
+            cursor: pointer;
+        }
+
+        .field_error {
+            color: #ff0000;
+            position: absolute;
+            font-size: 12px;
+        }
+
+        .iterator_fields {
+            display: inline-block;
+            background-color: #eee;
+            margin-bottom: 15px;
+            padding-top: 15px;
+            padding-right: 15px;
+            margin-left: 3px;
+        }
+
+        .form-control-feedback {
+            right: 10px;
+        }
+
+        .form-label {
+            font-weight: 600 !important;
+            font-size: 24px;
+            text-align: center;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #222;
+        }
+
+        label {
+            font-weight: 600;
+        }
+
+        #loading {
+            width: 12%;
+            margin: 0 AUTO;
+        }
+
+        .extra_margin {
+    margin-top: 40px;
+}
+    </style>
+</head>
+<body class="page-header-fixed page-footer-fixed">
+<!-- BEGIN HEADER -->
+<div class="header navbar navbar-inverse navbar-fixed-top">
+    <!-- BEGIN TOP NAVIGATION BAR -->
+    <div class="header-inner">
+        <!-- BEGIN LOGO -->
+        <a class="navbar-brand" href="/">
+            <img alt="" src="{{ STATIC_URL }}images/login_box_logo.png" width="auto" height="29"/>
+        </a>
+        <!-- END LOGO -->
+        <!-- BEGIN RESPONSIVE MENU TOGGLER -->
+        <a href="javascript:;" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <img src="{{ STATIC_URL }}assets/img/menu-toggler.png" alt=""/>
+        </a>
+        <!-- END RESPONSIVE MENU TOGGLER -->
+        <!-- BEGIN TOP NAVIGATION MENU -->
+        <ul class="nav navbar-nav pull-right">
+            <!-- BEGIN USER LOGIN DROPDOWN -->
+            <li class="dropdown user">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown"
+                   data-close-others="true">
+                    <img alt="" src="{{ STATIC_URL }}assets/img/avatar1_small.jpg"/>
+                    <span class="username">{{ request.user|capfirst }}</span>
+                    <i class="fa fa-angle-down"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="http://support.kobotoolbox.org/"><i class="fa fa-headphones"></i> Support</a></li>
+                    <!--<li class="divider"></li>-->
+                    <li><a href="{% url "auth_logout" %}"><i class="fa fa-sign-out"></i> Sign Out</a></li>
+                </ul>
+            </li>
+            <!-- END USER LOGIN DROPDOWN -->
+        </ul>
+        <!-- END TOP NAVIGATION MENU -->
+    </div>
+    <!-- END TOP NAVIGATION BAR -->
+</div>
+<!-- END HEADER -->
+<div class="clearfix"></div>
+<!-- BEGIN CONTAINER -->
+<div class="page-container">
+    <!-- BEGIN SIDEBAR -->
+    {% include "topbar_test.html" %}
+    <!-- END SIDEBAR -->
+    <!-- BEGIN PAGE -->
+    <div class="page-content">
+        <h3 class="form-label">Daily Register CO</h3>
+        <div class="input_fields_wrap">
+            <div style="display:none;" id="loading"><img src="{{ STATIC_URL }}images/Spinner.gif"></div>
+            <form name="dynamic_form" id="dynamic_form" method="post" class="" novalidate>
+                <input type="hidden" id="edit_instance_id" value=""/>
+                <div id="mainDiv" ng-controller="myCtrl as vms">
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Date:</span><span
+                                    ng-show="vms.model.language=='English'">Date:</span></label>
+                                <div class="input-group"><input ng-model="vms.model.date" validation="" name="date"
+                                                                is-open="vms.isDatePickerOpen_date"
+                                                                class="datepicker form-control"
+                                                                max-date="vms.maxDate" readonly=""
+                                                                datepicker-popup="yyyy/MM/dd"
+                                                                min-date="vms.minDate"
+                                                                ng-change="parseCustomConstraints(vms.model.date,'.=today()', 'root', -1, 'date','only current date should be allowed')"
+                                                                datepicker-options="vms.dateOptions"
+                                                                validation-error-to="date_error"
+                                                                type="text" datepicker-mode="day"/><span
+                                        class="input-group-btn"> <button
+                                        data-ng-click="vms.openDatePicker($event,'isDatePickerOpen_date')" type="button"
+                                        class="btn btn-default"> <i
+                                        class="glyphicon glyphicon-calendar"></i></button></span></div>
+                                <span class="field_error" id="date_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">SB Name:</span><span
+                                    ng-show="vms.model.language=='English'">SB Name:</span></label><select
+                                    validation-error-to="sb_name_error" class="form-control" validation="required"
+                                    name="sb_name"
+                                    ng-model="vms.model.sb_name">
+                                <option value="">-- Select --</option>
+                                {% for x,y in users %}
+                                    <option value="{{ y }}">{{ y }}</option>
+                                {% endfor %}
+                            </select><span class="field_error" id="sb_name_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Branch Name</span><span
+                                    ng-show="vms.model.language=='English'">Branch Name</span></label><select
+                                    validation-error-to="branch_name_error" class="form-control" validation="required"
+                                    name="branch_name"
+                                    ng-model="vms.model.branch_name">
+                                <option value="">-- Select --</option>
+                                {% for x,y in branches %}
+                                    <option value="{{ x }}">{{ y }}</option>
+                                {% endfor %}
+                            </select><span class="field_error" id="branch_name_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">SB Mobile no</span><span
+                                    ng-show="vms.model.language=='English'">SB Mobile no</span></label><input
+                                    ng-model="vms.model.sb_mobile"
+                                    name="sb_mobile"
+                                    validation-error-to="sb_mobile_error"
+                                    validation="pattern=/^[0-9]{11}$/:alt=Only 11 digit should be allowed"
+                                    type="text"
+                                    class="form-control"/><span
+                                    class="field_error" id="sb_mobile_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Does SB have Mobile SIM</span><span
+                                    ng-show="vms.model.language=='English'">Does SB have Mobile SIM</span></label><select
+                                    validation-error-to="mobile_sim_error" class="form-control" validation="required"
+                                    name="mobile_sim"
+                                    ng-model="vms.model.mobile_sim">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="mobile_sim_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Does SB have pregnancy Strips</span><span
+                                    ng-show="vms.model.language=='English'">Does SB have pregnancy Strips</span></label><select
+                                    validation-error-to="pregnancy_strip_error" class="form-control"
+                                    validation="required"
+                                    name="pregnancy_strip" ng-model="vms.model.pregnancy_strip">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="pregnancy_strip_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Does SB have ID card</span><span
+                                    ng-show="vms.model.language=='English'">Does SB have ID card</span></label><select
+                                    validation-error-to="id_card_error" class="form-control" validation="required"
+                                    name="id_card"
+                                    ng-model="vms.model.id_card">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="id_card_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Does SB have stethoscope</span><span
+                                    ng-show="vms.model.language=='English'">Does SB have stethoscope</span></label><select
+                                    validation-error-to="stethoscope_error" class="form-control" validation="required"
+                                    name="stethoscope"
+                                    ng-model="vms.model.stethoscope">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="stethoscope_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Does SB have Glucose test Strips</span><span
+                                    ng-show="vms.model.language=='English'">Does SB have Glucose test Strips</span></label><select
+                                    validation-error-to="glucose_test_strip_error" class="form-control"
+                                    validation="required"
+                                    name="glucose_test_strip" ng-model="vms.model.glucose_test_strip">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="glucose_test_strip_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Was SB provided with bag</span><span
+                                    ng-show="vms.model.language=='English'">Was SB provided with bag</span></label><select
+                                    validation-error-to="bag_error" class="form-control" validation="required"
+                                    name="bag"
+                                    ng-model="vms.model.bag">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="bag_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Does SB have BP machine</span><span
+                                    ng-show="vms.model.language=='English'">Does SB have BP machine</span></label><select
+                                    validation-error-to="bp_machine_error" class="form-control" validation="required"
+                                    name="bp_machine"
+                                    ng-model="vms.model.bp_machine">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="bp_machine_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Does SB have needles</span><span
+                                    ng-show="vms.model.language=='English'">Does SB have needles</span></label><select
+                                    validation-error-to="needles_error" class="form-control" validation="required"
+                                    name="needles"
+                                    ng-model="vms.model.needles">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="needles_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Was SB provided with Umbrella</span><span
+                                    ng-show="vms.model.language=='English'">Was SB provided with Umbrella</span></label><select
+                                    validation-error-to="umbrella_error" class="form-control" validation="required"
+                                    name="umbrella"
+                                    ng-model="vms.model.umbrella">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="umbrella_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Does SB have weight Machine</span><span
+                                    ng-show="vms.model.language=='English'">Does SB have weight Machine</span></label><select
+                                    validation-error-to="weight_machine_error" class="form-control"
+                                    validation="required"
+                                    name="weight_machine" ng-model="vms.model.weight_machine">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="weight_machine_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Does SB have Gluchometer</span><span
+                                    ng-show="vms.model.language=='English'">Does SB have Gluchometer</span></label><select
+                                    validation-error-to="gluchometer_error" class="form-control" validation="required"
+                                    name="gluchometer"
+                                    ng-model="vms.model.gluchometer">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="gluchometer_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Was SB provided with uniform</span><span
+                                    ng-show="vms.model.language=='English'">Was SB provided with uniform</span></label><select
+                                    validation-error-to="uniform_error" class="form-control" validation="required"
+                                    name="uniform"
+                                    ng-model="vms.model.uniform">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="uniform_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Overall Comment on Logistic</span><span
+                                    ng-show="vms.model.language=='English'">Overall Comment on Logistic</span></label>
+
+                                <input
+                                    ng-model="vms.model.comment_logistic" name="comment_logistic"
+                                    validation-error-to="comment_logistic_error" validation="required" type="text"
+                                    class="form-control"/><span class="field_error" id="comment_logistic_error"></span>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+                        <div ng-repeat="name in data.names track by $index" id="rpt_visit" class="iterator_fields col-lg-12">
+
+
+                            <div class="col-lg-4">
+                                <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Member ID</span><span
+                                        ng-show="vms.model.language=='English'">Member ID</span></label>
+
+                                    <input ng-model="vms.model.visit__member_id[$index]" name="visit__member_id__{$$index$}"
+                                    validation-error-to="visit__member_id_error" validation="required" type="text"
+                                    class="form-control"/>
+
+                                    <span class="field_error" id="visit__member_id__{$$index$}_error"></span></div>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <div class="form-group"><label><span
+                                        ng-show="vms.model.language=='Bangla'">Form Name</span><span
+                                        ng-show="vms.model.language=='English'">Form Name</span></label><select
+                                        validation-error-to="visit__form_name_error"
+                                        ng-model="vms.model.visit__form_name[$index]"
+                                        validation="required" name="visit__form_name__{$$index$}" class="form-control">
+                                    <option value>-- Select --</option>
+                                    <option value="1">Daily Activities</option>
+                                    <option value="2">0-5 years Child Health</option>
+                                    <option value="3">Hospital Referral Properly done</option>
+                                    <option value="4">lactational Women</option>
+                                    <option value="5">NCD Patient</option>
+                                    <option value="6">Pregnant Women</option>
+
+                                </select><span class="field_error" id="visit__form_name__{$$index$}_error"></span></div>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <div class="form-group"><label><span
+                                        ng-show="vms.model.language=='Bangla'">Is properly visited</span><span
+                                        ng-show="vms.model.language=='English'">Is properly visited</span></label><select
+                                        validation-error-to="visit__properly_visited_error"
+                                        ng-model="vms.model.visit__properly_visited[$index]"
+                                        validation="required" name="visit__properly_visited__{$$index$}" class="form-control">
+                                    <option value>-- Select --</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select><span class="field_error" id="visit__properly_visited__{$$index$}_error"></span></div>
+                            </div>
+
+                            <span ng-click="addRow($index)" ng-show="$last"><i class="fa fa-2x fa-plus-circle"
+                                                                               aria-hidden="true"></i></span><span
+                                ng-click="deleteRow($event,name)" ng-show="$index != 0"><i
+                                class="fa fa-2x fa-minus-circle"
+                                aria-hidden="true"></i></span>
+
+                        </div>
+
+                    </div>
+                    <div class="row">
+
+
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Overall Comment on Registers</span><span
+                                    ng-show="vms.model.language=='English'">Overall Comment on Registers</span></label><input
+                                    ng-model="vms.model.comment_register" name="comment_register"
+                                    validation-error-to="comment_register_error"
+                                    validation="required" type="text" class="form-control"/><span class="field_error"
+                                                                                                  id="comment_register_error"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Has SB receive basic training</span><span
+                                    ng-show="vms.model.language=='English'">Has SB receive basic training</span></label><select
+                                    validation-error-to="receive_training_error" class="form-control"
+                                    validation="required"
+                                    name="receive_training" ng-model="vms.model.receive_training">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="receive_training_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Date of last refresher training</span><span
+                                    ng-show="vms.model.language=='English'">Date of last refresher training</span></label>
+                                <div class="input-group"><input ng-model="vms.model.refresher_training_date"
+                                                                name="refresher_training_date"
+                                                                is-open="vms.isDatePickerOpen_refresher_training_date"
+                                                                class="datepicker form-control" max-date="vms.maxDate"
+                                                                readonly=""
+                                                                datepicker-popup="yyyy/MM/dd" min-date="vms.minDate"
+                                                                validation-error-to="refresher_training_date_error"
+                                                                datepicker-options="vms.dateOptions"
+                                                                validation="required"
+                                                                type="text"
+                                                                datepicker-mode="day"/><span class="input-group-btn"> <button
+                                        data-ng-click="vms.openDatePicker($event,'isDatePickerOpen_refresher_training_date')"
+                                        type="button"
+                                        class="btn btn-default"> <i
+                                        class="glyphicon glyphicon-calendar"></i></button></span>
+                                </div>
+                                <span class="field_error" id="refresher_training_date_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span
+                                    ng-show="vms.model.language=='English'">Overall Comment on training</span></label><input
+                                    ng-model="vms.model.comment_training" name="comment_training"
+                                    validation-error-to="comment_training_error"
+                                    validation="required" type="text" class="form-control"/><span class="field_error"
+                                                                                                  id="comment_training_error"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group extra_margin"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Others</span><span
+                                    ng-show="vms.model.language=='English'">Others</span></label><input
+                                    ng-model="vms.model.other" name="other"
+                                    validation-error-to="other_error"
+                                    validation="" type="text"
+                                    class="form-control"/><span
+                                    class="field_error" id="other_error"></span></div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group"><label><span ng-show="vms.model.language=='Bangla'">Did any meeting held with external providers by Community Organizer</span><span
+                                    ng-show="vms.model.language=='English'">Did any meeting held with external providers by Community Organizer</span></label><select
+                                    validation-error-to="meeting_held_external_provider_by_co_error"
+                                    class="form-control"
+                                    validation="required"
+                                    name="meeting_held_external_provider_by_co"
+                                    ng-model="vms.model.meeting_held_external_provider_by_co">
+                                <option value="">-- Select --</option>
+                                <option value="1">Yes</option>
+                                <option value="0">No</option>
+                            </select><span class="field_error" id="meeting_held_external_provider_by_co_error"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group extra_margin"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Major Decisions taken:</span><span
+                                    ng-show="vms.model.language=='English'">Major Decisions taken:</span></label><input
+                                    ng-model="vms.model.major_decisions" name="major_decisions"
+                                    validation-error-to="major_decisions_error"
+                                    validation="required" type="text" class="form-control"/><span class="field_error"
+                                                                                                  id="major_decisions_error"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="form-group extra_margin"><label><span
+                                    ng-show="vms.model.language=='Bangla'">Overall Comment on Visit</span><span
+                                    ng-show="vms.model.language=='English'">Overall Comment on Visit</span></label><input
+                                    ng-model="vms.model.overall_comment" name="overall_comment"
+                                    validation-error-to="overall_comment_error"
+                                    validation="required" type="text" class="form-control"/><span class="field_error"
+                                                                                                  id="overall_comment_error"></span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="row">
+
+                <div class="col-md-12">
+                    <input ng-disabled="dynamic_form.$invalid" type="submit"
+                               class="btn btn-primary"
+                               ng-click="uploadPic(vms.model);"
+                               value="Submit"/>
+                </div>
+
+
+
+                </div>
+
+
+            </form>
+        </div>
+        <!-- END PAGE CONTENT-->
+    </div>
+    <!-- END PAGE -->
+</div>
+<!-- END CONTAINER -->
+<!-- BEGIN FOOTER -->
+{% include "footer_test.html" %}
+<!-- END FOOTER -->
+
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular-route.js"></script>
+<script src="{{ STATIC_URL }}vendor/angular-translate/angular-translate.min.js"></script>
+<script src="{{ STATIC_URL }}vendor/angular-translate/angular-translate-loader-static-files.min.js"></script>
+<script src="https://angular-ui.github.io/bootstrap/ui-bootstrap-tpls-0.13.2.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}vendor/jquery/jquery.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}vendor/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="{{ STATIC_URL }}assets/plugins/jquery.cookie.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}vendor/ghiscoding/angular-validation.min.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/XMLWriter.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/xml2json.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.3/js/bootstrap-select.min.js"></script>
+<script src="https://angular-file-upload.appspot.com/js/ng-file-upload-shim.js"></script>
+<script src="https://angular-file-upload.appspot.com/js/ng-file-upload.js"></script>
+<script type="text/javascript">
+
+   var id_string = '{{ id_string }}';
+
+    function generateXML(inputObj, instance_id) {
+        var xw = new XMLWriter('UTF-8');
+        xw.writeStartDocument();
+        xw.writeStartElement(id_string);
+        xw.writeAttributeString('id', id_string);
+        xw.writeStartElement('formhub');
+        xw.writeStartElement('uuid');
+        xw.writeString('{{ form_uuid }}');
+        xw.writeEndElement();
+        xw.writeEndElement();
+        for (var ppx in inputObj) {
+            xmlrecursive(xw, ppx, inputObj[ppx]);
+        }
+        xw.writeStartElement('meta');
+        xw.writeStartElement('instanceID');
+        xw.writeString('uuid:' + guid());
+        xw.writeEndElement();
+        if (instance_id != '') {
+            var uuid = jsonObj[id_string].meta.instanceID.split(':')[1];
+            xw.writeStartElement('deprecatedID');
+            xw.writeString('uuid:' + uuid);
+            xw.writeEndElement();
+        }
+        xw.writeEndElement();
+        xw.writeEndElement();
+        xw.writeEndDocument();
+        var xml = xw.flush();
+        xw = undefined;
+        return xml;
+    }
+
+    function xmlrecursive(xml, key, value) {
+        if (typeof value !== "undefined") {
+            if (typeof value === "object" && Array.isArray(value) != true) {
+                //get rid of root elements
+                if (key.indexOf("_q_") >= 0) {
+                    key = key.split('_q_')[0];
+                }
+                //get rid of parent elements
+                if (key.indexOf("__") >= 0) {
+                    key = key.split("__")[key.split("__").length - 1]
+                }
+                //start writing element
+                xml.writeStartElement(key);
+                for (var idx in value) {
+                    //if element has children then recursively call again
+                    xmlrecursive(xml, idx, value[idx]);
+                }
+                xml.writeEndElement();
+            } else {
+                //get rid of parent elements
+                if (key.indexOf("__") >= 0) {
+                    key = key.split("__")[key.split("__").length - 1]
+                }
+                //start writing element
+                xml.writeStartElement(key);
+                //check for array type of multiple select
+                if (Array.isArray(value) == true) {
+                    value = value.join(" ");
+                }
+                xml.writeString(value);
+                xml.writeEndElement();
+            }
+        }
+    }
+
+    var app = angular.module('myApp', ['ghiscoding.validation', 'ui.bootstrap', 'ngFileUpload']);
+
+    app.config(['$compileProvider', function ($compileProvider) {
+        $compileProvider.debugInfoEnabled(false);
+    }]).config(['$translateProvider', function ($translateProvider) {
+        $translateProvider.useStaticFilesLoader({
+            prefix: '{{ STATIC_URL }}locales/validation/',
+            suffix: '.json'
+        });
+        // load English ('en') table on startup
+        $translateProvider.preferredLanguage('en').fallbackLanguage('en');
+        $translateProvider.useSanitizeValueStrategy('escapeParameters');
+    }]).config(function ($interpolateProvider) {
+        $interpolateProvider.startSymbol('{$');
+        $interpolateProvider.endSymbol('$}');
+    });
+
+    app.controller('myCtrl', ['$scope', 'ValidationService', '$http', 'Upload', '$timeout', function ($scope, ValidationService, $http, Upload, $timeout) {
+        var vms = this;
+        vms.model = {};
+        // use the ValidationService only to declare the controllerAs syntax
+        var vs = new ValidationService({controllerAs: vms});
+
+
+        /*
+         vms.datePickerFormat = 'dd/MM/yyyy';
+         vms.dateOptions = {formatYear: 'yy'};
+
+         vms.isDatePickerOpen_phase__cover_period_to_date = {};
+         vms.isDatePickerOpen_phase__cover_period_from_date = {}
+
+         vms.minDate = new Date(); // 10 years ago
+         vms.minDate.setHours(0, 0, 0, 0);
+         vms.minDate.setMonth(vms.minDate.getMonth() - 12 * 10);
+         vms.maxDate = new Date(); // now
+         vms.maxDate.setHours(0, 0, 0, 0);
+
+         this.openDatePicker1 = function ($event, idx) {
+         $event.preventDefault();
+         $event.stopPropagation();
+         vms.isDatePickerOpen_phase__cover_period_from_date['idx' + idx] = true;
+         };
+         */
+
+
+        vms.isChangeDatePickerOpen1 = false;
+        vms.isChangeDatePickerOpen2 = false;
+        vms.datePickerFormat = 'dd/MM/yyyy';
+        vms.dateOptions = {formatYear: 'yy'};
+
+        vms.minDate = new Date(); // 10 years ago
+        vms.minDate.setHours(0, 0, 0, 0);
+        vms.minDate.setMonth(vms.minDate.getMonth() - 12 * 10);
+        vms.maxDate = new Date(); // now
+        vms.maxDate.setHours(0, 0, 0, 0);
+
+        this.openDatePicker = function ($event, identifier) {
+            $event.preventDefault();
+            $event.stopPropagation();
+            vms[identifier] = true;
+        };
+
+
+        vms.model.country = 'Bangladesh';
+        vms.model.language = 'English';
+
+        $scope.data = {
+            names: [{name: ""}]
+        };
+
+        $scope.username = '{{ request.user.username }}';
+
+        $scope.addRow = function (index) {
+            var name = {name: ""};
+            if ($scope.data.names.length <= index + 1) {
+                $scope.data.names.splice(index + 1, 0, name);
+            }
+        };
+
+        $scope.deleteRow = function ($event, name) {
+            var index = $scope.data.names.indexOf(name);
+            if ($event.which == 1)
+                $scope.data.names.splice(index, 1);
+        }
+
+
+        function replaceAll(str, mapObj) {
+            var re = new RegExp(Object.keys(mapObj).join("|"), "gi");
+            return str.replace(re, function (matched) {
+                return mapObj[matched.toLowerCase()];
+            });
+        }
+
+        $scope.parseCustomConstraints = function (selectedValue, rule, root, nIndex) {
+            replacedRule = replaceAll(rule.replace(/\./g, selectedValue), {'and': '&&', 'or': '||'});
+            if (rule.match(/\(([^)]+)\)/)) {
+                if (root == 'root') {
+                    replacedRule = replacedRule.replace(/\$\{/g, 'vms.model.')
+                    replacedRule = replacedRule.replace(/\}/g, '')
+                } else {
+                    replacedRule = replacedRule.replace(/\$\{/g, 'vms.model.' + root + '__')
+                    replacedRule = replacedRule.replace(/\}/g, '[' + nIndex + ']')
+                }
+            }
+
+            if (!eval(replacedRule)) {
+
+            }
+
+        };
+
+        var domTree = {
+                "bp_machine": "root",
+                "gluchometer": "root",
+                "meeting_held_external_provider_by_co": "root",
+                "daily_activity_updated": "root",
+                "id_card": "root",
+                "visit": "root",
+                "sb_mobile": "root",
+                "uniform": "root",
+                "note": "root",
+                "other": "root",
+                "mobile_sim": "root",
+                "pregnancy_strip": "root",
+                "umbrella": "root",
+                "branch_name": "root",
+                "overall_comment": "root",
+                "needles": "root",
+                "stethoscope": "root",
+                "visit__member_id": "visit",
+                "visit__form_name": "visit",
+                "date": "root",
+                "visit__properly_visited": "visit",
+                "comment_logistic": "root",
+                "training": "root",
+                "receive_training": "root",
+                "comment_training": "root",
+                "weight_machine": "root",
+                "comment_register": "root",
+                "bag": "root",
+                "refresher_training_date": "root",
+                "logistic": "root",
+                "major_decisions": "root",
+                "glucose_test_strip": "root",
+                "sb_name": "root"
+            }
+        ;
+
+
+        var inputStore = {};
+        $scope.ct = Math.floor(Date.now() / 1000);
+
+        $scope.save = function () {
+            var edit_instance_id = angular.element(document.querySelector('#edit_instance_id')).val();
+            angular.forEach($scope.dynamic_form, function (element, name) {
+                if (!name.startsWith('$')) {
+                    if (name.indexOf('__') > 0) {
+                        var child_name = name.substring(0, name.lastIndexOf("__"));
+                    } else {
+                        var child_name = name;
+                    }
+                    var parent = domTree[child_name];
+
+                    /*
+
+                     if (typeof element.$viewValue == 'object') {
+                     var element_to_save = $scope.ct.toString() + '_' + $scope.username + '_' + element.$viewValue.name.toString();
+                     } else {
+                     var element_to_save = element.$viewValue.toString();
+                     }
+                     */
+
+
+                    if (typeof element.$viewValue == 'object') {
+                        var element_to_save = $scope.ct.toString() + '_' + $scope.username + '_' + element.$viewValue.name.toString();
+                    } else if (typeof element.$viewValue == 'undefined') {
+                        var element_to_save = element.$viewValue;
+                    } else {
+                        var element_to_save = element.$viewValue.toString();
+                    }
+
+
+                    if (parent == 'root') {
+                        inputStore[child_name] = element_to_save;
+                    } else {
+                        if (inputStore.hasOwnProperty(parent + '_q_' + name.split('__')[name.split('__').length - 1])) {
+                            inputStore[parent + '_q_' + name.split('__')[name.split('__').length - 1]][child_name] = element_to_save;
+                        } else {
+                            inputStore[parent + '_q_' + name.split('__')[name.split('__').length - 1]] = {}
+                            inputStore[parent + '_q_' + name.split('__')[name.split('__').length - 1]][child_name] = element_to_save;
+                        }
+                    }
+                }
+            });
+            var generatedXML = generateXML(inputStore, edit_instance_id);
+            return generatedXML
+        };
+
+
+        {#        $scope.uploadPic = function (req) {#}
+        {#            $("#loading").show();#}
+        {#            $("#dynamic_form").css('opacity', '0.4');#}
+        {#            xmltext = $scope.save();#}
+        {#            file = req.picture;#}
+        {#            file.upload = Upload.upload({#}
+        {#                url: '/formbuilder/upload-formmedia/',#}
+        {#                data: {ct: $scope.ct, username: $scope.username, file: file, xmltext: xmltext},#}
+        {#            });#}
+        {##}
+        {#            file.upload.then(function (response) {#}
+        {#                $timeout(function () {#}
+        {#                    file.result = response.data;#}
+        {#                    if (response.data == 'success!') {#}
+        {#                        window.location.href = '/wibci_module/customer_list/';#}
+        {#                    }#}
+        {#                });#}
+        {#            }, function (response) {#}
+        {#                if (response.status > 0) {#}
+        {#                    $scope.errorMsg = response.status + ': ' + response.data;#}
+        {#                }#}
+        {#            }, function (evt) {#}
+        {#                // Math.min is to fix IE which reports 200% sometimes#}
+        {#                file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));#}
+        {#            });#}
+        {#        }#}
+
+        $scope.uploadPic = function (req) {
+            $("#loading").show();
+            $("#dynamic_form").css('opacity', '0.4');
+            console.log('fasdf')
+
+            xmltext = $scope.save();
+            console.log(xmltext);
+            if (req.upload_product) {
+                file = req.upload_product;
+
+                file.upload = Upload.upload({
+                    url: '/formbuilder/upload-formmedia/',
+                    data: {ct: $scope.ct, username: $scope.username, file: file, xmltext: xmltext},
+                });
+
+
+                file.upload.then(function (response) {
+                    $timeout(function () {
+                        file.result = response.data;
+                        if (response.data == 'success!') {
+
+                            window.location.href = '/planmodule/commnity_orientation_add_data/'
+
+                        }
+                    });
+                }, function (response) {
+                    if (response.status > 0)
+                        $scope.errorMsg = response.status + ': ' + response.data;
+                }, function (evt) {
+                    // Math.min is to fix IE which reports 200% sometimes
+                    file.progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                });
+            } else {
+
+
+                $http({
+                    method: 'POST',
+                    url: '/sajidamodule/submit-xml-data/',
+                    data: {'xml_submission_file': xmltext},
+                    dataType: 'json',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;'
+                    }
+                }).success(function (data) {
+                    window.location.href = '/sajidamodule/daily_register_co_list'
+                });
+            }
+        }
+
+        $scope.opt_district = [];
+        $scope.opt_upazila = [];
+        $scope.opt_union = [];
+        $scope.opt_banks = [];
+        $scope.opt_branches = [];
+        $scope.opt_agents = [];
+
+        $scope.getExternalOptions = function (url, value, container) {
+            if (typeof value != 'undefined' && value != '' && value != null) {
+                $http({
+                    method: 'POST',
+                    url: url,
+                    data: {'search_key': value},
+                    dataType: 'json',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).success(function (data) {
+                    $scope[container] = data;
+                });
+            } else {
+                $scope[container] = [];
+            }
+        }
+
+
+        $scope.fillForm = function () {
+            angular.element(document.querySelector('#edit_instance_id')).val({{ instance_id }});
+            angular.forEach($scope.dynamic_form, function (element, name) {
+                if (!name.startsWith('$')) {
+                    if (name.indexOf('__') > 0) {
+                        var element_name = name.split('__')[name.split('__').length - 2];
+                    } else {
+                        var element_name = name;
+                    }
+                    element_arr = lookup(jsonObj, element_name);
+                    if (element_arr != null) {
+                        element.$setViewValue(element_arr[1]);
+                        console.log(element);
+                        element.$render();
+                    }
+                }
+            });
+        }
+
+        angular.element(document).ready(function () {
+            $('.page-sidebar, .header').on('click', '.sidebar-toggler', function (e) {
+                var body = $('body');
+                var sidebar = $('.page-sidebar');
+
+                if ((body.hasClass("page-sidebar-hover-on") && body.hasClass('page-sidebar-fixed')) || sidebar.hasClass('page-sidebar-hovering')) {
+                    body.removeClass('page-sidebar-hover-on');
+                    sidebar.css('width', '').hide().show();
+                    $.cookie('sidebar_closed', '0');
+                    e.stopPropagation();
+                    runResponsiveHandlers();
+                    return;
+                }
+
+                $(".sidebar-search", sidebar).removeClass("open");
+
+                if (body.hasClass("page-sidebar-closed")) {
+                    body.removeClass("page-sidebar-closed");
+                    if (body.hasClass('page-sidebar-fixed')) {
+                        sidebar.css('width', '');
+                    }
+                    $.cookie('sidebar_closed', '0');
+                } else {
+                    body.addClass("page-sidebar-closed");
+                    $.cookie('sidebar_closed', '1');
+                }
+                //runResponsiveHandlers();
+            });
+
+            //get banks list
+            {#            $scope.getExternalOptions('/formbuilder/get-banks/', 'N/A', 'opt_banks');#}
+            //get agents list
+            {#            $scope.getExternalOptions('/formbuilder/getWibciAgents/', 'N/A', 'opt_agents');#}
+
+            if (typeof jsonObj !== "undefined" && jsonObj !== null) {
+                $scope.fillForm();
+            }
+
+        });
+
+        /*************************** Rubbbish Code ***********************************/
+
+        $scope.$watch('opt_district', function (newValue, oldValue) {
+            if (!newValue || newValue === oldValue) return;
+            angular.forEach($scope.dynamic_form, function (element, name) {
+                if (name.startsWith('district')) {
+                    element.$setViewValue(parseInt(vms.model.district));
+                    element.$render();
+                }
+            });
+        });
+
+        $scope.$watch('opt_upazila', function (newValue, oldValue) {
+            if (!newValue || newValue === oldValue) return;
+            angular.forEach($scope.dynamic_form, function (element, name) {
+                if (name.startsWith('upazila')) {
+                    element.$setViewValue(parseInt(vms.model.upazila));
+                    element.$render();
+                }
+            });
+        });
+
+        $scope.$watch('opt_union', function (newValue, oldValue) {
+            if (!newValue || newValue === oldValue) return;
+            angular.forEach($scope.dynamic_form, function (element, name) {
+                if (name.startsWith('union')) {
+                    element.$setViewValue(parseInt(vms.model.union));
+                    element.$render();
+                }
+            });
+        });
+
+
+    }]);
+
+
+    function guid() {
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    }
+
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    }
+
+    function lookup(obj, k) {
+        for (key in obj) {
+
+            value = obj[key];
+            if (k == key) return [k, value];
+
+            if (type(value) == "Object") {
+                var y = lookup(value, k);
+                if (y && y[0] == k) return y;
+            }
+            if (type(value) == "Array") {
+                // for..in doesn't work the way you want on arrays in some browsers
+                //
+                for (var i = 0; i < value.length; ++i) {
+                    var x = lookup(value[i], k);
+                    if (x && x[0] == k) return x;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    function type(object) {
+        var stringConstructor = "test".constructor;
+        var arrayConstructor = [].constructor;
+        var objectConstructor = {}.constructor;
+
+        if (object === null) {
+            return "null";
+        } else if (object === undefined) {
+            return "undefined";
+        } else if (object.constructor === stringConstructor) {
+            return "String";
+        } else if (object.constructor === arrayConstructor) {
+            return "Array";
+        } else if (object.constructor === objectConstructor) {
+            return "Object";
+        } else {
+            return "null";
+        }
+    }
+
+    //edit portion
+    xml_string = '{{ xml_data|safe }}';
+
+    var x2js = new X2JS();
+    var jsonObj = x2js.xml_str2json(xml_string);
+</script>
+<script src="{{ STATIC_URL }}assets/scripts/app.js"></script>
+<script>
+    jQuery(document).ready(function () {
+        $("ul").each(
+            function () {
+                var elem = $(this);
+                if (elem.children().length == 0) {
+                    elem.remove();
+                }
+            }
+        );
+
+        $(".sub-menu").each(
+            function () {
+                var elem = $(this);
+                if (elem.children().length >= 1) {
+                    elem.prev('a').append('<span class="arrow open"></span>')
+                }
+            }
+        );
+
+        if ($('.sub-menu-li').hasClass('active')) {
+            $('.arrow').parent().parent().addClass('active');
+        }
+
+        App.init();
+    });
+
+</script>
+</body>
+</html>

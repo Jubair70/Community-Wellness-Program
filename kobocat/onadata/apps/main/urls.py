@@ -22,6 +22,7 @@ urlpatterns = patterns(
     url(r'^api/v1', RedirectView.as_view(url='/api/v1/')),
     url(r'^usermodule/', include('onadata.apps.usermodule.urls', namespace="usermodule")),
     url(r'^planmodule/', include('onadata.apps.planmodule.urls', namespace="planmodule")),
+    url(r'^sajidamodule/', include('onadata.apps.sajidamodule.urls', namespace="sajidamodule")),
     url(r'^dashboard/', include('onadata.apps.dashboard.urls', namespace="dashboard")),
     url(r'^dashboard_tool/', include('onadata.apps.dashboard_tool.urls', namespace="dashboard_tool")),
     url(r'^approve-status/', include('onadata.apps.approval.urls', namespace="approval-status")),

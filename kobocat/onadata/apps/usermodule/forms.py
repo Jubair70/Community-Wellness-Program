@@ -7,13 +7,13 @@ from onadata.apps.usermodule.models import OrganizationRole
 from onadata.apps.usermodule.models import MenuRoleMap
 from onadata.apps.usermodule.models import UserRoleMap
 from django.utils.translation import ugettext as _, ugettext_lazy
-from onadata.apps.usermodule.helpers import COUNTRIES
+from onadata.apps.usermodule.helpers import COUNTRIES,STATUS
 
 class UserForm(forms.ModelForm):
     password = forms.CharField(label='Create a password',widget=forms.PasswordInput(),min_length=4)
     password_repeat = forms.CharField(label='Confirm your password',widget=forms.PasswordInput())
     email = forms.EmailField(required=True)
-    username = forms.CharField(help_text='',max_length=20,widget=forms.TextInput(attrs={'pattern': '[a-z_0-9]+','title':'only lowercase letter, numbers and underscore(_) is allowed. example: user_2009'}))
+    username = forms.CharField(help_text='',max_length=60,widget=forms.TextInput(attrs={'pattern': '[a-z_0-9]+','title':'only lowercase letter, numbers and underscore(_) is allowed. example: user_2009'}))
     # date_joined = forms.CharField(widget=forms.HiddenInput(),initial=datetime.now()) 
     def clean_password_repeat(self):
         password1 = self.cleaned_data.get('password')
@@ -31,7 +31,7 @@ class UserForm(forms.ModelForm):
 
 class UserEditForm(forms.ModelForm):
     email = forms.EmailField(required=True)
-    username = forms.CharField(help_text='',max_length=10)
+    username = forms.CharField(help_text='',max_length=60)
 
     class Meta:
         model = User
@@ -49,13 +49,14 @@ class UserProfileForm(forms.ModelForm):
     organisation_name = forms.ModelChoiceField(label='Organisation Name',queryset=Organizations.objects.all(),empty_label="Select an Organization")
     country = forms.ChoiceField(choices=COUNTRIES, required=True, label='Country')
     position = forms.CharField(label="Position")
-
+    contact_number = forms.CharField(label="Contact Number")
+    status = forms.ChoiceField(choices=STATUS, required=True, label='Status')
     # expired = forms.DateTimeField(label="Expiry Date",required=False,initial=datetime.now()+ timedelta(days=90))
 
     class Meta:
         model = UserModuleProfile
         #fields = ('admin','employee_id','organisation_name','country','position','psu')
-        fields = ('admin','employee_id','organisation_name','country','position')
+        fields = ('admin','employee_id','organisation_name','country','position','contact_number','status')
 
     def __init__(self, *args, **kwargs):
         admin_check = kwargs.pop('admin_check', False)
@@ -84,7 +85,7 @@ class OrganizationRoleForm(forms.ModelForm):
     # role = forms.CharField(label='Role',required=True)
     class Meta:
         model = OrganizationRole
-        fields = ('organization','role')        
+        fields = ('organization','role')
 
 
 class ChangePasswordForm(forms.Form):

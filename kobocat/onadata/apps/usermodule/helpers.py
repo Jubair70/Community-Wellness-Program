@@ -1,5 +1,12 @@
 from django.utils.translation import ugettext as _
 
+STATUS = (
+    ('',_('Select a Status')),
+    ('Active',_('Active')),
+('Inactive',_('Inactive')),
+('Left Job',_('Left Job')),
+)
+
 COUNTRIES = (
     ('', _('Select a Country')), 
     ('AFG', _('Afghanistan')), 

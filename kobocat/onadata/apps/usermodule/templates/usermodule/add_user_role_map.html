@@ -24,7 +24,7 @@
         <div class="caption"><i class="fa fa-sitemap"></i>User-Role Management</div>
     </div>
     <div class="portlet-body">
-        <form id="menu_form" method="post" action="/usermodule/adjust-user-role-map/{{id}}/">
+        <form id="menu_form" method="post" action="/usermodule/adjust-user-role-map/{{id}}/?u_id={{ user_id }}">
             {% csrf_token %}
             {{new_formset.management_form}}
             <table id="organizations-table" class="table table-bordered table-striped table-condensed flip-content"

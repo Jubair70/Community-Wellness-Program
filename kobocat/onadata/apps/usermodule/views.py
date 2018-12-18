@@ -73,6 +73,7 @@ def index(request):
         users = UserModuleProfile.objects.filter(organisation_name__in=org_id_list).order_by("user__username")
         # json_posts = json.dumps(list(users))
         admin = True
+        print(users)
     else:
         users = user
         admin = False
@@ -82,6 +83,7 @@ def index(request):
             'admin': admin,
             # 'json_posts' : json_posts
         })
+
     return HttpResponse(template.render(context))
 
 
@@ -102,6 +104,8 @@ def register(request):
     
     # If it's a HTTP POST, we're interested in processing form data.
     if request.method == 'POST':
+
+
         # Attempt to grab information from the raw form information.
         # Note that we make use of both UserForm and UserProfileForm.
         user_form = UserForm(data=request.POST)
@@ -145,6 +149,30 @@ def register(request):
             main_user_profile = UserProfile(user = user)
             main_user_profile.save()
 
+
+            result_set = request.POST.get('result_set').split(',')
+            # role_id = request.POST.get('role_id')
+            # role_name = request.POST.get('role_name')
+
+            # insert_role = "INSERT INTO public.usermodule_userrolemap (user_id, role_id) VALUES("+str(profile.id)+", "+str(role_id)+")"
+            # __db_commit_query(insert_role)
+
+            # branch_role = ["Community Organizer", "Psychosocial Educator", "Coordinator"]
+            # center_role = ["Sajida Bondhu"]
+
+            indication = request.POST.get('indication')
+            if indication == '1':
+                for each in result_set:
+                    query = "INSERT INTO public.usermodule_branch (user_id, branch_id,branch_code) VALUES(" + str(
+                        user.id) + ", " + str(each) + ",(select branch_code from branch_list where id = "+str(each)+"))"
+                    __db_commit_query(query)
+            elif indication == '2':
+                for each in result_set:
+                    query = "INSERT INTO public.usermodule_center (user_id, center_id,center_code) VALUES(" + str(
+                        user.id) + ", " + str(each) + ",(select center_code from center_list where id = "+str(each)+"))"
+                    __db_commit_query(query)
+
+
             # Update our variable to tell the template registration was successful.
             registered = True
 
@@ -177,11 +205,99 @@ def register(request):
 ,empty_label="Select a Organization")
         profile_form = UserProfileForm(admin_check=admin_check)
 
+    # all region list
+    query = "select id,field_name from geo_data where field_type_id = 144"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    region_id = df.id.tolist()
+    region_name = df.field_name.tolist()
+    region = zip(region_id, region_name)
+
+    list_of_dictionary = []
+    for id, name in region:
+        query = "select id from branch_list where region_id = " + str(id) + " limit 1"
+        df = pandas.read_sql(query, connection)
+        if len(df.id.tolist()):
+            true = True
+        else:
+            true = False
+        temp = {"id": id, "text": name, "hasChildren": true, "children": [],"level":"region"}
+        list_of_dictionary.append(temp)
+    datasource = json.dumps({'list_of_dictionary': list_of_dictionary})
+
+    # select all user role
+    query = "select id,role from usermodule_organizationrole"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query,connection)
+    role_id = df.id.tolist()
+    role_name = df.role.tolist()
+    role = zip(role_id,role_name)
+
     # Render the template depending on the context.
     return render_to_response(
             'usermodule/register.html',
-            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered},
+            {'role':role,'user_form': user_form, 'profile_form': profile_form, 'registered': registered,'datasource': datasource},
             context)
+
+@csrf_exempt
+def add_children_branch(request):
+    id = request.POST.get('id')
+    node_name = request.POST.get('node_name')
+    #check if it is a region or branch
+    check_query = "select id,field_name from geo_data where field_name = '"+str(node_name)+"'"
+    df = pandas.read_sql(check_query, connection)
+    if not df.empty and id == str(df.id.tolist()[0]) :
+        query = "select id,branch_name from branch_list where region_id  = " + str(id)
+        df = pandas.read_sql(query, connection)
+        id_ch = df.id.tolist()
+        name = df.branch_name.tolist()
+        all = zip(id_ch, name)
+        list_of_dictionary = []
+        for id_ch, name in all:
+            query = "select id from center_list where branch_id =" + str(id_ch) + " limit 1"
+            df = pandas.read_sql(query, connection)
+            if len(df.id.tolist()):
+                true = True
+            else:
+                true = False
+            temp = {"id": id_ch, "text": name, "hasChildren": true, "children": [],"level":"branch"}
+            list_of_dictionary.append(temp)
+        return HttpResponse(json.dumps({'id': id, 'list_of_dictionary': list_of_dictionary}))
+
+    query = "select id,center_name from center_list where branch_id  = " + str(id)
+    df = pandas.read_sql(query, connection)
+    id_ch = df.id.tolist()
+    name = df.center_name.tolist()
+    all = zip(id_ch, name)
+    list_of_dictionary = []
+    for id_ch, name in all:
+        temp = {"id": id_ch, "text": name, "hasChildren": False, "children": [],"level":"center"}
+        list_of_dictionary.append(temp)
+    return HttpResponse(json.dumps({'id': id, 'list_of_dictionary': list_of_dictionary}))
+
+def common_member(a, b):
+    a_set = set(a)
+    b_set = set(b)
+    print(a_set)
+    print(b_set)
+    return list(a_set & b_set)
+
+def getBranches(request):
+    # selected_branch_id = json.loads(request.POST.get('branch_id'))
+
+    region_id = json.loads(request.POST.get('region_id'))
+    region_id = str(map(str, region_id))
+    region_id =  region_id.replace('[', '(').replace(']', ')').replace("'",'')
+    branch_query = "select id,branch_name from branch_list where  region_id in " + str(region_id)
+    branch_data = json.dumps(__db_fetch_values_dict(branch_query))
+    # df = pandas.DataFrame()
+    # df = pandas.read_sql(branch_query,connection)
+    # get_id = df.id.tolist()
+    # print(selected_branch_id)
+    # print(get_id)
+    # res = []
+    # print(common_member(get_id,selected_branch_id))
+    return HttpResponse(branch_data)
 
 
 def get_organization_by_user(user):
@@ -457,6 +573,37 @@ def edit_profile(request,user_id):
                 # Now we save the UserProfile model instance.
                 profile.save()
 
+                result_set = request.POST.get('result_set').split(',')
+                # role_id = request.POST.get('role_id')
+                # role_name = request.POST.get('role_name')
+
+
+
+                # update_role = "UPDATE public.usermodule_userrolemap SET role_id= "+str(role_id)+" WHERE user_id= (select id from usermodule_usermoduleprofile where user_id = "+str(user_id)+" )"
+                # __db_commit_query(update_role)
+
+
+                # branch_role = ["Community Organizer", "Psychosocial Educator", "Coordinator"]
+                # center_role = ["Sajida Bondhu"]
+
+                query = "delete from usermodule_branch where user_id = " + str(user_id)
+                __db_commit_query(query)
+                query = "delete from usermodule_center where user_id = " + str(user_id)
+                __db_commit_query(query)
+
+                indication = request.POST.get('indication')
+                if indication == '1':
+                    for each in result_set:
+                        query = "INSERT INTO public.usermodule_branch (user_id, branch_id,branch_code) VALUES(" + str(
+                            user.id) + ", " + str(each) + ",(select branch_code from branch_list where id = " + str(each) + "))"
+                        __db_commit_query(query)
+                elif indication == '2':
+                    for each in result_set:
+                        query = "INSERT INTO public.usermodule_center (user_id, center_id,center_code) VALUES(" + str(
+                            user.id) + ", " + str(each) + ",(select center_code from center_list where id = " + str(each) + "))"
+                        __db_commit_query(query)
+
+
                 # Update our variable to tell the template registration was successful.
                 edited = True
                 messages.success(request, '<i class="fa fa-check-circle"></i> User profile has been updated successfully!', extra_tags='alert-success crop-both-side')
@@ -481,9 +628,108 @@ def edit_profile(request,user_id):
     ,empty_label="Select a Organization")
             profile_form = UserProfileForm(instance = profile,admin_check=admin_check)
 
+        # all region list
+        query = "select id,field_name from geo_data where field_type_id = 144"
+        df = pandas.DataFrame()
+        df = pandas.read_sql(query, connection)
+        region_id = df.id.tolist()
+        region_name = df.field_name.tolist()
+        region = zip(region_id, region_name)
+
+        # seletected items of  branch list
+        # query = "select DISTINCT branch_id from usermodule_branch where user_id = "+str(user_id)
+        # df = pandas.DataFrame()
+        # df = pandas.read_sql(query, connection)
+        # set_branch_list = df.branch_id.tolist()
+        #
+        #
+        # branch_id = str(map(str, set_branch_list))
+        # branch_id = branch_id.replace('[', '(').replace(']', ')')
+        #
+        # # seletected items of region list
+        # query = "select distinct region_id from branch_list where id in " + str(branch_id)
+        # df = pandas.DataFrame()
+        # df = pandas.read_sql(query, connection)
+        # set_region_list = df.region_id.tolist()
+        #
+        # # get branches whose regions are selected
+        # region_list = str(map(str, set_region_list))
+        # region_list = region_list.replace('[', '(').replace(']', ')')
+        # region_list_query = "select DISTINCT id,branch_name from branch_list where region_id in "+str(region_list)
+        # df = pandas.DataFrame()
+        # df = pandas.read_sql(region_list_query, connection)
+        # selected_regions_branch_id = df.id.tolist()
+        # selected_regions_branch_name = df.branch_name.tolist()
+        # selected_regions_branch = zip(selected_regions_branch_id,selected_regions_branch_name)
+        #
+        # print("set_branch_list "+str(set_branch_list))
+        # print("set_region_list "+str(set_region_list))
+
+
+        list_of_dictionary = []
+        for id, name in region:
+            query = "select id from branch_list where region_id = " + str(id) + " limit 1"
+            df = pandas.read_sql(query, connection)
+            if len(df.id.tolist()):
+                true = True
+            else:
+                true = False
+            temp = {"id": id, "text": name, "hasChildren": true, "children": [], "level": "region"}
+            list_of_dictionary.append(temp)
+        datasource = json.dumps({'list_of_dictionary': list_of_dictionary})
+
+        # select all user role
+        query = "select id,role from usermodule_organizationrole"
+        df = pandas.DataFrame()
+        df = pandas.read_sql(query, connection)
+        role_id = df.id.tolist()
+        role_name = df.role.tolist()
+        role = zip(role_id, role_name)
+
+
+        # check the user role
+        check_user_role = "select (select role from usermodule_organizationrole where id = role_id )role_name from usermodule_userrolemap where user_id = (select id from usermodule_usermoduleprofile where user_id = "+str(user_id)+")"
+        df  = pandas.read_sql(check_user_role,connection)
+        if df.empty:
+            message = "Assaign a role to this user"
+            return render(request, 'usermodule/error_404.html', {'message': message})
+        role_name = df.role_name.tolist()[0]
+
+
+        # branch_role = ["Community Organizer", "Psychosocial Educator", "Coordinator"]
+        # center_role = ["Sajida Bondhu"]
+
+
+        checked_nodes = []
+
+        parent_nodes = []
+
+
+        checked_node_query = "select * from usermodule_branch where user_id = " + str(user_id)
+        df = pandas.read_sql(checked_node_query, connection)
+        if df.empty:
+            checked_node_query = "select * from usermodule_center where user_id = " + str(user_id)
+            df = pandas.read_sql(checked_node_query, connection)
+            checked_nodes = df.center_id.tolist()
+            parent_node_query = "select distinct region_id parent_id from branch_list where id in (select distinct branch_id parent_id from center_list where id in (select center_id from usermodule_center where user_id = " + str(
+                user_id) + ")) union all select distinct branch_id parent_id from center_list where id in (select center_id from usermodule_center where user_id = " + str(
+                user_id) + ")"
+            df = pandas.read_sql(parent_node_query, connection)
+            parent_nodes = df.parent_id.tolist()
+        else:
+            checked_nodes = df.branch_id.tolist()
+            parent_node_query = "select distinct region_id parent_id from branch_list where id in (select branch_id from usermodule_branch where user_id = " + str(
+                user_id) + ")"
+            df = pandas.read_sql(parent_node_query, connection)
+            parent_nodes = df.parent_id.tolist()
+
+
+
+
         return render_to_response(
                 'usermodule/edit_user.html',
-                {'id':user_id, 'user_form': user_form, 'profile_form': profile_form, 'edited': edited},
+                {'checked_nodes':checked_nodes,'parent_nodes':parent_nodes,'id':user_id, 'user_form': user_form, 'profile_form': profile_form, 'edited': edited,'datasource': datasource,'role':role,
+                 'role_name':role_name},
                 context)
 
 
@@ -965,7 +1211,7 @@ def role_menu_map_index(request):
                 menu_dict[role.id] = org_menu_list
 
         return render_to_response(
-            'usermodule/roles_menu_map_list.html',
+                'usermodule/roles_menu_map_list.html',
             {'menu_items':menu_items, 'menu_dict':menu_dict,'roles':roles},
             context)
 
@@ -1088,7 +1334,11 @@ def adjust_user_role_map(request, org_id=None):
     context = RequestContext(request)
     is_added = False
     roles = OrganizationRole.objects.filter(organization=org_id)
-    users = UserModuleProfile.objects.filter(organisation_name=org_id)
+    if request.GET.get('u_id'):
+        user_id = int(request.GET.get('u_id'))
+        users = UserModuleProfile.objects.filter(user_id=user_id)
+    else:
+        users = UserModuleProfile.objects.filter(organisation_name=org_id)
     initial_list = []
     for user_item in users:
         alist = UserRoleMap.objects.filter(user=user_item.pk).values('role')
@@ -1096,11 +1346,9 @@ def adjust_user_role_map(request, org_id=None):
         for i in alist:
             mist.append( i['role'])
         initial_list.append({'user': user_item.pk,'role':mist,'username': user_item.user.username})
-
     UserRoleMapfForm.base_fields['role'] = forms.ModelChoiceField(queryset=roles,empty_label=None)
     PermisssionFormSet = formset_factory(UserRoleMapfForm,max_num=len(users))
     new_formset = PermisssionFormSet(initial=initial_list)
-    
     if request.method == 'POST':
         new_formset = PermisssionFormSet(data=request.POST)
         for idx,user_role_form in enumerate(new_formset):
@@ -1118,11 +1366,14 @@ def adjust_user_role_map(request, org_id=None):
                     UserRoleMap(user=current_user,role=roley).save()
             for dely in deleter:
                 loly = OrganizationRole.objects.get(pk=dely)
-                ob = UserRoleMap.objects.get(user=current_user,role=loly).delete()
+                try:
+                    ob = UserRoleMap.objects.get(user=current_user,role=loly).delete()
+                except ObjectDoesNotExist as e:
+                    print(e)
         messages.success(request, '<i class="fa fa-check-circle"></i> Organization Roles have been adjusted successfully!',
                          extra_tags='alert-success crop-both-side')
-        return HttpResponseRedirect('/usermodule/user-role-map/'+org_id)
-    
+        return HttpResponseRedirect('/usermodule/')
+
     return render_to_response(
             'usermodule/add_user_role_map.html',
             {
@@ -1131,6 +1382,7 @@ def adjust_user_role_map(request, org_id=None):
             'new_formset':new_formset,
             'roles':roles,
             # 'users':users,
+                'user_id':user_id
             },
             context)
 
@@ -2265,9 +2517,96 @@ def startpage(request, username, id_string):
 
 ########################################################
 
+############# Branch List ###############
+def __db_commit_query(query):
+    cursor = connection.cursor()
+    cursor.execute(query)
+    connection.commit()
+    cursor.close()
+
+@login_required
+def branch_list(request):
+    query = "select id,branch_name,(select organization from usermodule_organizations where id = organization_id) organization_name,(select field_name  from geo_data where id = region_id) region_name,coalesce(address,'') address from branch_list"
+    branch_list = json.dumps(__db_fetch_values_dict(query))
+    return render(request, 'usermodule/branch_list.html', {
+        'branch_list': branch_list
+    })
 
 
+@login_required
+def add_branch_form(request):
+    query = "select id,field_name from geo_data where field_type_id = 144"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    region_id = df.id.tolist()
+    region_name = df.field_name.tolist()
+    region = zip(region_id, region_name)
+    query = "select id,organization from usermodule_organizations"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    organization_id = df.id.tolist()
+    organization_name = df.organization.tolist()
+    organization = zip(organization_id, organization_name)
+    return render(request, 'usermodule/add_branch_form.html',
+                  {'region': region, 'organization': organization})
 
 
+@login_required
+def insert_branch_form(request):
+    if request.POST:
+        branch_name = request.POST.get('branch_name')
+        organization_id = request.POST.get('organization_id')
+        region_id = request.POST.get('region_id')
+        address = request.POST.get('address')
+        insert_query = "INSERT INTO public.branch_list (branch_name, organization_id, region_id, address) VALUES('"+str(branch_name)+"', "+str(organization_id)+", "+str(region_id)+", '"+str(address)+"')"
+        __db_commit_query(insert_query)
+    return HttpResponseRedirect("/usermodule/branch_list/")
+
+@login_required
+def edit_branch_form(request, branch_id):
+    query = "select id,branch_name,organization_id,(select organization from usermodule_organizations where id = organization_id) organization_name,region_id,(select field_name  from geo_data where id = region_id) region_name,coalesce(address,'') address from branch_list where id=" + str(branch_id)
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    data = {}
+    data['branch_id'] = branch_id
+    data['branch_name'] = df.branch_name.tolist()[0]
+    set_organization_id = df.organization_id.tolist()[0]
+    set_region_id= df.region_id.tolist()[0]
+    data['address'] = df.address.tolist()[0]
+
+    query = "select id,field_name from geo_data where field_type_id = 144"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    region_id = df.id.tolist()
+    region_name = df.field_name.tolist()
+    region = zip(region_id, region_name)
+    query = "select id,organization from usermodule_organizations"
+    df = pandas.DataFrame()
+    df = pandas.read_sql(query, connection)
+    organization_id = df.id.tolist()
+    organization_name = df.organization.tolist()
+    organization = zip(organization_id, organization_name)
+
+    return render(request, 'usermodule/edit_branch_form.html',
+                  {'data': json.dumps(data),'set_organization_id':set_organization_id,
+                   'set_region_id':set_region_id,'region':region,'organization':organization})
 
 
+@login_required
+def update_branch_form(request):
+    if request.POST:
+        branch_id = request.POST.get('branch_id')
+        branch_name = request.POST.get('branch_name')
+        organization_id = request.POST.get('organization_id')
+        region_id = request.POST.get('region_id')
+        address = request.POST.get('address')
+        update_query = "UPDATE branch_list SET branch_name='"+str(branch_name)+"', organization_id="+str(organization_id)+", region_id="+str(region_id)+", address='"+str(address)+"' WHERE id=" + str(branch_id)
+        __db_commit_query(update_query)
+    return HttpResponseRedirect("/usermodule/branch_list/")
+
+
+@login_required
+def delete_branch_form(request, branch_id):
+    delete_query = "delete from branch_list where id = " + str(branch_id) + ""
+    __db_commit_query(delete_query)
+    return HttpResponseRedirect("/usermodule/branch_list/")

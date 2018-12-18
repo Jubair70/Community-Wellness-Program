@@ -1,0 +1,331 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
+    <link href="/static/css/calendar.min.css" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="fa fa-reorder"></i> Edit SB Target
+            </div>
+        </div>
+
+        <div class="portlet-body">
+            <form class="horizontal-form" id="" method="post" action="/sajidamodule/update_hh_target_form/" id="form"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" value="{{ id }}" name="id">
+                <div class="form-body">
+                     <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>SB Name: </label>
+                                <input  class="form-control" id="username" name="username" value="{{ username | safe }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>From Date: </label>
+                                <div class="ui calendar" id="given_month_text">
+                                    <input type="text" class="form-control" name="given_month_text" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+{#                    <div class="row">#}
+{#                        <div class="col-md-5">#}
+{#                            <div class="form-group">#}
+{#                                <label>To Date: </label>#}
+{#                                <div class="ui calendar" id="to_date">#}
+{#                                    <input type="text" class="form-control" name="to_date" readonly>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+
+                <input  id="given_month" name="given_month" type="hidden">
+                <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Target: </label>
+                                <input  class="form-control" id="target_hh" name="target_hh" value="{{ target_hh |safe }}" required>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button class="btn btn-danger pull-left" id="submit" name="submit" type="submit"
+                                    data-original-title=""
+                                    title="">Submit
+                            </button>
+                            <button onclick="history.go(-1);" style="margin-left:10px;" type="button"
+                                    class="btn btn-info pull-left" data-original-title="" title="">Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional-javascript %}
+
+    {#    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>#}
+    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
+    <script type="text/javascript" src="/static/js/calendar.min.js"></script>
+    <script>
+{#        var min_date = {{ min_date |safe }};#}
+{#        var max_date = {{ max_date | safe }};#}
+
+        $('#given_month_text').calendar({
+            type: 'month',
+{#            endCalendar: $('#to_date'),#}
+{#            minDate: new Date(min_date.substr(0, 4), parseInt(min_date.substr(5, 2)) - 1, min_date.substr(8, 2)),#}
+{#            maxDate: new Date(max_date.substr(0, 4), parseInt(max_date.substr(5, 2)) - 1, max_date.substr(8, 2)),#}
+            popupOptions: {
+                position: 'bottom right'
+            }
+{#                        ,#}
+{#            formatter: {#}
+{#                date: function (date, settings) {#}
+{#                    if (!date) return '';#}
+{##}
+{#                    var day = date.getDate();#}
+{#                    var month = date.getMonth() + 1;#}
+{#                    var year = date.getFullYear();#}
+{##}
+{#                    if (day < 10) {#}
+{#                        day = '0' + day#}
+{#                    }#}
+{#                    if (month < 10) {#}
+{#                        month = '0' + month#}
+{#                    }#}
+{#                    return year + '-' + month + '-' + day;#}
+{#                }#}
+{#            }#}
+{#            ,#}
+{#            onChange: function (date, text, mode) {#}
+{#                $('#to_date').calendar({#}
+{#                    type: 'date', startCalendar: $('#given_month_text'),#}
+{#                    popupOptions: {#}
+{#                        position: 'bottom right'#}
+{#                    },#}
+{#            minDate: new Date(min_date.substr(0, 4), parseInt(min_date.substr(5, 2)) - 1, min_date.substr(8, 2)),#}
+{#            maxDate: new Date(max_date.substr(0, 4), parseInt(max_date.substr(5, 2)) - 1, max_date.substr(8, 2))#}
+{#                    ,maxDate: new Date(date.getFullYear(), date.getMonth() + 3)#}
+{#                                        ,#}
+{#                                     formatter: {#}
+{#                date: function (date, settings) {#}
+{#                    if (!date) return '';#}
+{##}
+{#                    var day = date.getDate();#}
+{#                    var month = date.getMonth() + 1;#}
+{#                    var year = date.getFullYear();#}
+{##}
+{#                    if (day < 10) {#}
+{#                        day = '0' + day#}
+{#                    }#}
+{#                    if (month < 10) {#}
+{#                        month = '0' + month#}
+{#                    }#}
+{#                    return year + '-' + month + '-' + day;#}
+{#                }#}
+{#            }#}
+{#                });#}
+{#            }#}
+
+        });
+
+{#        $('#to_date').calendar({#}
+{#            type: 'month', startCalendar: $('#given_month_text'),#}
+{#            popupOptions: {#}
+{#                position: 'bottom right'#}
+{#            }, isDisabled: function (date, mode) {#}
+{#                return true;#}
+{#            }#}
+{#        });#}
+
+        var given_month = {{ given_month |safe }};
+        var given_month_text = {{ given_month_text | safe}};
+
+
+        $('#given_month_text').calendar('set date',given_month);
+        $('#given_month').val(given_month);
+{#        $('#to_date').calendar('set date',end_date);#}
+
+        $('#submit').on('click',function () {
+
+             var month = $('#given_month_text').calendar("get date");
+             $('#given_month').val(getFormattedDate(month));
+{#           var given_month_text = $('#given_month_text').calendar('get date')#}
+{#            var to_date = $('#to_date').calendar('get date')#}
+{#            console.log(given_month_text);#}
+{#            if(given_month_text != null  && to_date != null )#}
+{#                return true;#}
+{#           return false;#}
+
+        });
+
+        function getFormattedDate(date) {
+                var yy = date.getFullYear();
+                var mm = date.getMonth() + 1;
+                var dd = date.getDate();
+                if (dd < 10) {
+                    dd = '0' + dd
+                }
+                if (mm < 10) {
+                    mm = '0' + mm
+                }
+                {#                formatted_date = yyyy + '-' + mm + '-' + dd;#}
+                formatted_date = yy + '-' + mm + '-' + dd;
+                return formatted_date;
+            }
+
+
+
+        function loadtype(obj) {
+            ajaxcall();
+            obj = parseInt(obj.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#facility_type_text_area').val("");
+            }
+            else {
+
+                $.ajax({
+                    url: '/planmodule/getType/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        if (result[0].facility_type == '1') {
+                            $('#facility_type_text_area').val("FWCC");
+                            $('#facility_type').val(1);
+                        }
+
+                        else {
+                            $('#facility_type').val(2);
+                            $('#facility_type_text_area').val("CC");
+                        }
+
+
+                    }
+                });
+            }
+        }
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+
+        function load_upazila(dist_object) {
+            ajaxcall();
+            dist = parseInt(dist_object.value)
+            console.log(dist);
+            if (isNaN(parseFloat(dist))) {
+                $('#upazila').html("<option value=\"\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/planmodule/getUpazilas/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'dist': dist},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        console.log(result);
+                        var html_code = "<option value=\"\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#upazila').html(html_code);
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_facility(upz_object) {
+            $('#facility_name').html("<option value=\"\">Select One</option>");
+            ajaxcall();
+            upz = parseInt(upz_object.value)
+            console.log(upz);
+            if (isNaN(parseFloat(upz))) {
+                $('#facility_name').html("<option value=\"\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/planmodule/get_facility_by_upazila/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'upz': upz},
+                    success: function (result) {
+                        if (result.length > 0) {
+                            var html_code = "<option value=\"\">Select One</option>";
+
+                            for (i = 0; i < result.length; i++) {
+                                html_code += "<option value=\"" + result[i].facilty_id + "\"> " + result[i].facilty_name + "</option>";
+                            }
+                            $('#facility_name').html(html_code);
+                        }
+
+
+                    }
+                });
+            }
+
+        }
+
+
+    </script>
+
+{% endblock %}Z

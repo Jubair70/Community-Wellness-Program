@@ -1,0 +1,299 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
+    <link href="/static/css/calendar.min.css" rel="stylesheet" type="text/css"/>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption">
+                <i class="fa fa-reorder"></i> Edit Cycle Duration
+            </div>
+        </div>
+
+        <div class="portlet-body">
+            <form class="horizontal-form" id="" method="post" action="/sajidamodule/update_cycle_form/" id="form"
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" value="{{ id }}" name="id">
+                <div class="form-body">
+                     <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>SB Name: </label>
+                                <input  class="form-control" id="username" name="username" value="{{ username | safe }}" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>From Date: </label>
+                                <div class="ui calendar" id="from_date">
+                                    <input type="text" class="form-control" name="from_date" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>To Date: </label>
+                                <div class="ui calendar" id="to_date">
+                                    <input type="text" class="form-control" name="to_date" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button class="btn btn-danger pull-left" id="submit" name="submit" type="submit"
+                                    data-original-title=""
+                                    title="">Submit
+                            </button>
+                            <button onclick="history.go(-1);" style="margin-left:10px;" type="button"
+                                    class="btn btn-info pull-left" data-original-title="" title="">Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block additional-javascript %}
+
+    {#    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>#}
+    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>
+    <script type="text/javascript" src="/static/js/calendar.min.js"></script>
+    <script>
+
+
+        $('#from_date').calendar({
+            type: 'date', endCalendar: $('#to_date'),
+            popupOptions: {
+                position: 'bottom right'
+            }
+                        ,
+            formatter: {
+                date: function (date, settings) {
+                    if (!date) return '';
+
+                    var day = date.getDate();
+                    var month = date.getMonth() + 1;
+                    var year = date.getFullYear();
+
+                    if (day < 10) {
+                        day = '0' + day
+                    }
+                    if (month < 10) {
+                        month = '0' + month
+                    }
+                    return year + '-' + month + '-' + day;
+                }
+            }
+            ,
+            onChange: function (date, text, mode) {
+                $('#to_date').calendar({
+                    type: 'date', startCalendar: $('#from_date'),
+                    popupOptions: {
+                        position: 'bottom right'
+                    }
+{#                    ,maxDate: new Date(date.getFullYear(), date.getMonth() + 3)#}
+                                        ,
+                                     formatter: {
+                date: function (date, settings) {
+                    if (!date) return '';
+
+                    var day = date.getDate();
+                    var month = date.getMonth() + 1;
+                    var year = date.getFullYear();
+
+                    if (day < 10) {
+                        day = '0' + day
+                    }
+                    if (month < 10) {
+                        month = '0' + month
+                    }
+                    return year + '-' + month + '-' + day;
+                }
+            }
+                });
+            }
+
+        });
+
+        $('#to_date').calendar({
+            type: 'month', startCalendar: $('#from_date'),
+            popupOptions: {
+                position: 'bottom right'
+            }, isDisabled: function (date, mode) {
+                return true;
+            }
+        });
+
+        var start_date = {{ start_date |safe }};
+        console.log(start_date);
+        var end_date = {{ end_date | safe}};
+
+
+        $('#from_date').calendar('set date',start_date);
+        $('#to_date').calendar('set date',end_date);
+
+        $('#submit').on('click',function () {
+           var from_date = $('#from_date').calendar('get date')
+            var to_date = $('#to_date').calendar('get date')
+            console.log(from_date);
+            if(from_date != null  && to_date != null )
+                return true;
+           return false;
+
+        });
+
+
+        function loadtype(obj) {
+            ajaxcall();
+            obj = parseInt(obj.value);
+            if (isNaN(parseFloat(obj))) {
+                $('#facility_type_text_area').val("");
+            }
+            else {
+
+                $.ajax({
+                    url: '/planmodule/getType/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'obj': obj},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        if (result[0].facility_type == '1') {
+                            $('#facility_type_text_area').val("FWCC");
+                            $('#facility_type').val(1);
+                        }
+
+                        else {
+                            $('#facility_type').val(2);
+                            $('#facility_type_text_area').val("CC");
+                        }
+
+
+                    }
+                });
+            }
+        }
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+
+        function load_upazila(dist_object) {
+            ajaxcall();
+            dist = parseInt(dist_object.value)
+            console.log(dist);
+            if (isNaN(parseFloat(dist))) {
+                $('#upazila').html("<option value=\"\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/planmodule/getUpazilas/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'dist': dist},
+                    {#                    beforeSend: function () {#}
+                    {#                        $("#all_info_table").html('<div class="alert alert-success">Please Wait...loading....</div>');#}
+                    {#                    },#}
+                    success: function (result) {
+                        console.log(result);
+                        var html_code = "<option value=\"\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].id + "\"> " + result[i].field_name + "</option>";
+                        }
+                        $('#upazila').html(html_code);
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function load_facility(upz_object) {
+            $('#facility_name').html("<option value=\"\">Select One</option>");
+            ajaxcall();
+            upz = parseInt(upz_object.value)
+            console.log(upz);
+            if (isNaN(parseFloat(upz))) {
+                $('#facility_name').html("<option value=\"\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/planmodule/get_facility_by_upazila/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'upz': upz},
+                    success: function (result) {
+                        if (result.length > 0) {
+                            var html_code = "<option value=\"\">Select One</option>";
+
+                            for (i = 0; i < result.length; i++) {
+                                html_code += "<option value=\"" + result[i].facilty_id + "\"> " + result[i].facilty_name + "</option>";
+                            }
+                            $('#facility_name').html(html_code);
+                        }
+
+
+                    }
+                });
+            }
+
+        }
+
+
+    </script>
+
+{% endblock %}

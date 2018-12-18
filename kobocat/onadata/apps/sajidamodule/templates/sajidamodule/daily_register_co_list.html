@@ -1,0 +1,298 @@
+{% extends 'base_test.html' %}
+{% load i18n %}
+{% block additional-headers %}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet">
+    {#    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">#}
+    <link href="/static/css/bootstrap-datepicker.css" rel="stylesheet" type="text/css"/>
+    <style type="text/css">
+        .btn-info {
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock %}
+
+
+
+{% block content %}
+
+    <div class="portlet box red">
+        <div class="portlet-title">
+            <div class="caption"><i class="fa fa-adn"></i>Daily Register CO</div>
+        </div>
+        <div class="portlet-body">
+
+                <div >
+                    <a href="/sajidamodule/add_daily_register_co/">
+                        <button type="submit" class="btn btn-info" id="add_new"
+                                data-original-title=""
+                                title="">Add New
+                        </button>
+                    </a>
+                </div>
+
+            <table id="all_info_table" class="table table-bordered table-striped table-condensed flip-content">
+                <thead class="flip-content">
+                <tr>
+                    <th>Branch</th>
+                     <th>Member ID</th>
+                    <th>Form Name</th>
+                   <th>Properly Visited</th>
+                    <th>SB User</th>
+{#                    <th class="td-center">Action</th>#}
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="confirm-delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="myModalLabel">Confirm Delete</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p>You are about to delete a legal awareness class info, this procedure is irreversible.</p>
+                    <p>Do you want to proceed?</p>
+                    <p class="debug-url"></p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <a href="#" class="btn btn-danger btn-ok">Delete</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block additional-javascript %}
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.flash.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.4.2/js/buttons.print.min.js"></script>
+    {#    <script src="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.js"></script>#}
+    <script type="text/javascript" src="/static/js/bootstrap-datepicker.js"></script>
+    <script>
+
+
+        $(document).ready(function () {
+
+            
+
+        
+
+            var table = $('#all_info_table').DataTable({
+                "scrollX": true, "ordering": false,
+                deferRender: true,
+                dom: 'Bfrtip'
+                ,
+                buttons: [
+                    {
+                        filename: "Daily Register CO",
+                        title: "",
+                        text: "<strong>Export</strong>",
+                        extend: 'csv',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4]
+                        }
+                    }
+                ]
+
+            });
+
+            $('#generate_report').on('click', function () {
+
+                table.destroy();
+
+                var from_date = $('#from_date').val();
+
+                var to_date = $('#to_date').val();
+                var region = $('#region option:selected').val();
+                var branch = $('#branch option:selected').val();
+                var organizer = $('#organizer option:selected').val();
+                var status = $('#status').val();
+
+
+                if (region == null)
+                    region = ""
+                if (branch == null)
+                    branch = ""
+                if (organizer == null)
+                    organizer = ""
+
+                $.ajax({
+                    url: '/sajidamodule/getAwarenessData/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        'from_date': from_date
+                        , 'to_date': to_date
+                        , 'region': region
+                        , 'branch': branch
+                        , 'organizer': organizer, 'status': status
+                    },
+                    beforeSend: function () {
+                        $('#container').show();
+
+                    },
+                    success: function (result) {
+                        console.log(result);
+                        $('#container').hide();
+                        var tbody = '';
+                        for (var idx in result) {
+                            tbody += '<tr><td>' + result[idx].branch_name + '</td><td>' + result[idx].class_start_date + '</td><td>' + result[idx].class_end_date + '</td><td>' + result[idx].participant_number + '</td><td>' + result[idx].organizer + '</td><td class="td-center"><a class="tooltips" data-placement="top" data-original-title="Edit" href="/sajidamodule/edit_legal_awareness_class/' + daily_register_co_list[idx].id + '"><i class="fa fa-2x fa-pencil-square-o"></i></a><a class="delete-item tooltips" data-placement="top" data-toggle="modal" data-target="#confirm-delete" data-original-title="Delete" href="#" data-href="/sajidamodule/delete_legal_awareness_class/' + daily_register_co_list[idx].id + '"><i class="fa fa-2x fa-trash-o"></i></a></td></tr>';
+                        }
+                        $("#all_info_table").find('tbody').html(tbody);
+                        table = datatable_reinitialize();
+                    }
+                });
+
+
+            });
+
+        });
+
+
+        var tbody = '';
+        var daily_register_co_list = {{ daily_register_co_list|safe }};
+
+        for (var idx in daily_register_co_list) {
+            tbody += '<tr><td>' + daily_register_co_list[idx].branch_name + '</td><td>' + daily_register_co_list[idx].member_id + '</td>class_end_date<td>' + daily_register_co_list[idx].form_name + '</td><td>' + daily_register_co_list[idx].properly_visited + '</td><td>' + daily_register_co_list[idx].sb_name + '</td></tr>';
+        }
+
+        $("#all_info_table").find('tbody').html(tbody);
+
+
+        $('.delete-item').on('click', function (e) {
+            var criteria_id = $(this).attr("data-href");
+            $('.btn-ok').attr("href", criteria_id);
+        });
+        if ($('.alert-block').is(':visible')) {
+            window.setTimeout(function () {
+                $(".alert-success").fadeTo(1500, 0).slideUp(500, function () {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+
+
+        function load_branch(region_object) {
+            ajaxcall();
+            console.log()
+            region = region_object.value;
+            if (isNaN(parseFloat(region))) {
+                $('#branch').html("<option value=\"\">Select One</option>");
+            }
+            else {
+
+                $.ajax({
+                    url: '/sajidamodule/getBranches/',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {'region': region},
+
+
+                    success: function (result) {
+                        var html_code = "<option value=\"\">Select One</option>";
+
+                        for (i = 0; i < result.length; i++) {
+                            html_code += "<option value=\"" + result[i].branch_code + "\"> " + result[i].branch_name + "</option>";
+                        }
+                        $('#branch').html(html_code);
+
+
+                    }
+                });
+            }
+
+        }
+
+
+        function getDesiredDate(n) {
+
+            var today = new Date();
+            var n_month_before_today = new Date(today);
+
+            n_month_before_today.setMonth((today.getMonth() + 1) - n);
+            var dd = n_month_before_today.getDate();
+            var mm = n_month_before_today.getMonth() + 1;
+
+            if (dd < 10) {
+                dd = '0' + dd
+            }
+            if (mm < 10) {
+                mm = '0' + mm
+            }
+            var yyyy = n_month_before_today.getFullYear();
+
+            formatted_date = yyyy + '/' + mm + '/' + dd;
+            return new Date(yyyy, mm, dd);
+
+        }
+
+
+        function ajaxcall() {
+            $.ajaxSetup({
+                beforeSend: function (xhr, settings) {
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie != '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                        // Only send the token to relative URLs i.e. locally.
+                        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                    }
+                }
+            });
+        }
+
+
+        function datatable_reinitialize() {
+            return $('#all_info_table').DataTable({
+                "scrollX": true, "ordering": false,
+                deferRender: true,
+                dom: 'Bfrtip',
+                buttons: [
+                    {
+                        filename: "CSA Report",
+                        title: "",
+                        text: "<strong>Export</strong>",
+                        extend: 'excelHtml5'
+                    }
+                ]
+
+            });
+        }
+    </script>
+{% endblock %}

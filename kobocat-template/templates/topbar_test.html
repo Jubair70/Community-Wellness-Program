@@ -62,13 +62,37 @@
         </li>
         {% empty %}
         {% endfor %}
+
+
+
         <li class="last">
             <a href="{% url "auth_logout" %}">
                 <i class="fa fa-sign-out"></i>
                 <span class="title">{% trans "Sign out" %}</span>
             </a>
         </li>
-    </ul>
+{#        <li>#}
+{#            <a href="#">#}
+{#                <i class="fa fa-tasks"></i>#}
+{#                <span class="title">test</span>#}
+{##}
+{#            </a>#}
+{#            <ul class="sub-menu" style="display: block;">#}
+{##}
+{#                <li>#}
+{#                    <a href="#">#}
+{#                        <i class=""></i>#}
+{#                        <span class="title">test1</span>#}
+{##}
+{#                    </a>#}
+{#                    <ul class="sub-menu" style="display: block;">#}
+{##}
+{#                        <li class="sub-menu-li "><a href="/usermodule/">test2</a></li>#}
+{#                    </ul>#}
+{#                </li>#}
+{##}
+{#            </ul>#}
+{#        </li>#}
     <!-- END SIDEBAR MENU -->
 </div>
 {% endif %}

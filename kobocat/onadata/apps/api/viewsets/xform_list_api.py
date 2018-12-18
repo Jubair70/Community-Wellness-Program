@@ -35,7 +35,7 @@ from django.http import HttpResponse
 import json
 from collections import OrderedDict
 from django.db import connection
-
+import pandas
 
 # 10,000,000 bytes
 DEFAULT_CONTENT_LENGTH = getattr(settings, 'DEFAULT_CONTENT_LENGTH', 10000000)
@@ -50,6 +50,19 @@ class XFormListApi(viewsets.ReadOnlyModelViewSet):
     renderer_classes = (XFormListRenderer,)
     serializer_class = XFormListSerializer
     template_name = 'api/xformsList.xml'
+
+    def __db_fetch_values_dict(self,query):
+        cursor = connection.cursor()
+        cursor.execute(query)
+        fetchVal = self.dictfetchall(cursor)
+        cursor.close()
+        return fetchVal
+
+    def dictfetchall(self,cursor):
+        desc = cursor.description
+        return [
+            OrderedDict(zip([col[0] for col in desc], row))
+            for row in cursor.fetchall()]
 
     def get_openrosa_headers(self):
         tz = pytz.timezone(settings.TIME_ZONE)
@@ -73,47 +86,44 @@ class XFormListApi(viewsets.ReadOnlyModelViewSet):
         else:
             return Response(password, headers=self.get_openrosa_headers(), status=401)
     def mobile_login_response(self, username, password):
-        district = None
-        district_label = None
-        upazilla = None
-        upazilla_label = None
-        union_name = None
-        union_label = None
-        cursor = connection.cursor()
-        cursor.execute("WITH v AS(WITH k AS (WITH t AS (SELECT field_parent_id, field_name,geocode, id AS geoid FROM geo_data WHERE field_type_id = 89) SELECT (SELECT field_parent_id FROM geo_data WHERE id = t.field_parent_id) AS field_parent_id, (SELECT geocode FROM geo_data WHERE id = t.field_parent_id) AS upazilla, (SELECT field_name FROM geo_data WHERE id = t.field_parent_id) AS upazilla_label, t.field_name AS union_label, t.geocode AS union_name, t.geoid FROM t) SELECT (SELECT geocode FROM geo_data WHERE id = k.field_parent_id) AS district, (SELECT field_name FROM geo_data WHERE id = k.field_parent_id) AS district_label, upazilla, upazilla_label, union_name, union_label, k.geoid FROM k), p AS (SELECT * FROM usermodule_catchment_area) SELECT district, district_label, upazilla, upazilla_label, union_name, union_label FROM v, p WHERE v.geoid = p.geoid AND p.user_id = (SELECT id FROM auth_user WHERE username = '"+str(username)+"')")
-        desc = cursor.description
-        geo_data = [OrderedDict(zip([col[0] for col in desc], row)) for row in cursor.fetchall()]
-        cursor.execute("select (select organization from usermodule_organizations where id = organisation_name_id) as pngo from usermodule_usermoduleprofile where user_id = (select id from auth_user where username = '"+str(username)+"')")
-        pngo = cursor.fetchone()[0]
-        cursor.close()
-        if geo_data:
-            district = geo_data[0]['district']
-            upazilla = geo_data[0]['upazilla']
-            union_name = geo_data[0]['union_name']
-            district_label = geo_data[0]['district_label']
-            upazilla_label = geo_data[0]['upazilla_label']
-            union_label = geo_data[0]['union_label']
-        _psu_list = []
-        user = get_object_or_404(User, username=username.lower())
-        user_module_profile = UserModuleProfile.objects.get(user=user)
-        #psu = user_module_profile.psu;
-        #_psu_list.append(psu.name)
-        # for psu in psus:
-        #   psuList.append(psu)
+        region = []
+        branch = []
+
+        region_query = "select region_id,(select field_name from geo_data where id = region_id ) region_name from usermodule_region where user_id = (select id from auth_user where username = '"+str(username)+"')"
+        region = self.__db_fetch_values_dict(region_query)
+        if len(region) == 0:
+            region_query = "select id region_id,field_name region_name from geo_data"
+            region = self.__db_fetch_values_dict(region_query)
+            branch_query = "select id branch_id, branch_name from branch_list"
+            branch = self.__db_fetch_values_dict(branch_query)
+        else:
+            branch_query = "select branch_id,(select branch_name from branch_list where id = branch_id ) branch_name from usermodule_branch where user_id = (select id from auth_user where username = '"+str(username)+"')"
+            branch = self.__db_fetch_values_dict(branch_query)
+
+        cycle_query = "select start_date|| ' --- ' || end_date cycle_duration from users_cycle_duration where end_date > now()::date and user_id = (select id from auth_user where username= '"+str(username)+"') order by id desc limit 1"
+        target_query = "select target_hh target from hh_target WHERE  extract(month from given_month)::int > extract(month from now())::int and user_id = (select id from auth_user where username= '"+str(username)+"') order by id desc limit 1"
+
+        cycle_duration = None
+        target = None
+
+        df_cycle = pandas.read_sql(cycle_query,connection)
+        if not df_cycle.empty:
+            cycle_duration = df_cycle.cycle_duration.tolist()[0]
+        df_target = pandas.read_sql(target_query, connection)
+        if not df_target.empty:
+            target = df_target.target.tolist()[0]
+
+
+
         return {
             'username': username,
             'password': password,
             'role': 'Enumerator',
-            'district':district,
-            'district_label':district_label,
-            'upazilla_label':upazilla_label,
-            'union_label':union_label,
-            'upazilla':upazilla,
-            'union_name':union_name,
-            'pngo':pngo
-            #'PSU': _psu_list
+            'region':region,
+            'branch':branch,
+            'cycle_duration':cycle_duration,
+            'target':target
         }
-        # return dict(role='', PSU=psu)
 
 
     def get_renderers(self):

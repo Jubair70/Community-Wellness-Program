@@ -38,7 +38,7 @@
     <div class="portlet box red">
         <div class="portlet-title">
             <div class="caption">
-                <i class="fa fa-reorder"></i> Add Rode
+                <i class="fa fa-reorder"></i> Add Role
             </div>
         </div>
         <div class="portlet-body form">
@@ -47,11 +47,11 @@
                 {% csrf_token %}
                 <div class="form-body">
                     <div class="form-group">
-                        <label>Organisation:</label>
+                        <label>Organization:</label>
                                 <select id="{{ role_form.organization.id_for_label }}"
                                         name="{{ role_form.organization.name }}" class="form-control">
                                     {% for m,n in role_form.fields.organization.choices %}
-                                    <option value="{{ m }}">{{ n }}
+                                    <option value="{{ m }}" {% if n == "Sajida Foundation" %} selected{% endif %}>{{ n }}
                                     </option>
                                     {% endfor %}
                                 </select>
@@ -62,6 +62,7 @@
                         <input type="text" name="{{ role_form.role.name }}" class="form-control">
                         <span class="help-block">{{ role_form.role.errors.as_text }}</span>
                     </div>
+
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn red pull-right">Submit</button>

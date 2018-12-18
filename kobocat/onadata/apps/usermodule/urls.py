@@ -3,6 +3,7 @@ from django.contrib import admin
 from onadata.apps.usermodule import views,views_project
 
 urlpatterns = patterns('',
+    url(r'^add_children_branch/$', views.add_children_branch, name='add_children_branch'),
     url(r'^$', views.index, name='index'),
     url(r'^register/$', views.register, name='register'),
     url(r'^error/$', views.error_page, name='error_page'),
@@ -86,5 +87,15 @@ urlpatterns = patterns('',
 
     url(r'^upload/csv/$', views.upload_csv, name='upload_csv'),
 
+                       ####### Branch #####
+    url(r'^branch_list/$', views.branch_list, name='branch_list'),
+    url(r'^add_branch_form/$', views.add_branch_form, name='add_branch_form'),
+    url(r'^insert_branch_form/$', views.insert_branch_form, name='insert_branch_form'),
+url(r'^edit_branch_form/(?P<branch_id>\d+)/$', views.edit_branch_form,
+                           name='edit_branch_form'),
+url(r'^update_branch_form/$', views.update_branch_form, name='update_branch_form'),
+url(r'^delete_branch_form/(?P<branch_id>\d+)/$', views.delete_branch_form,
+                           name='delete_branch_form'),
+url(r'^getBranches/$', views.getBranches, name='getBranches'),
 
     )
